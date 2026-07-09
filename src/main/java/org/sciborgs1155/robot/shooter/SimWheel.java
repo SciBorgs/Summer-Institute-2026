@@ -12,7 +12,7 @@ public class SimWheel implements WheelIO {
 
   private final FlywheelSim simWheel;
 
-  // Intialize 
+  // Intialize
   public SimWheel() {
     simWheel =
         new FlywheelSim(

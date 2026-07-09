@@ -18,7 +18,7 @@ public class RealWheel implements WheelIO {
   private final TalonFX flywheelMotor1;
   private final TalonFX flywheelMotor2;
 
-  //motor configurations
+  // motor configurations
   public RealWheel() {
 
     // change later

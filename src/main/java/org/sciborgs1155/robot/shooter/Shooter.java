@@ -39,8 +39,8 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
   private final SysIdRoutine characterization;
 
   /**
-   *sets the shooter's PID tolerance
-   * 
+   * sets the shooter's PID tolerance
+   *
    * @param hardware Takes in the WheelIO class
    */
   public Shooter(WheelIO hardware) {
@@ -69,7 +69,7 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
 
   /**
    * Returns shooter subsyystem
-   * 
+   *
    * @return Creates real or simulated shooter based on {@link Robot#isReal()}
    */
   public static Shooter create() {
@@ -77,7 +77,6 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
   }
 
   /**
-   * 
    * @return The value of the velocity (in Radians Per Second)
    */
   @Logged
@@ -87,7 +86,7 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
 
   /**
    * Updates the velocity setpoint
-   * 
+   *
    * @param velocitySetPoint The velocity setpoint
    */
   public void update(double velocitySetpoint) {
@@ -103,20 +102,18 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
 
   /**
    * Checks if the PID position is at the velocity setpoint
-   * 
+   *
    * @return boolean PID position is at setpoint (true/false)
    */
-    @Logged
-    public boolean atSetpoint() {
-        return PIDController.atSetpoint();
+  @Logged
+  public boolean atSetpoint() {
+    return PIDController.atSetpoint();
   }
 
-
   /**
-   * Checks if the current velocity and the target velocity is less than the velocity tolerance 
-   * 
+   * Checks if the current velocity and the target velocity is less than the velocity tolerance
+   *
    * @param velocity Target velocity
-   * 
    * @return true or false
    */
   @Logged
@@ -134,22 +131,19 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
 
   /**
    * Runs shooter at a velcoity
-   * 
+   *
    * @param velocity The velocity as a DoubleSupplier
-   * 
-   * @return the Command to set the shooter's velocity 
+   * @return the Command to set the shooter's velocity
    */
   public Command runShooter(DoubleSupplier velocity) {
     return run(() -> update(velocity.getAsDouble())).withName("running shooter");
   }
 
   /**
-   * Runs shooter at a specific velocity 
-   * 
-   * @param velocity The desired velocity 
-   * 
-   * @return Command to set the velocity 
-
+   * Runs shooter at a specific velocity
+   *
+   * @param velocity The desired velocity
+   * @return Command to set the velocity
    */
   public Command runShooter(double velocity) {
     return runShooter(() -> velocity);
@@ -157,11 +151,9 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
 
   /**
    * Does a test command to check if subsystem works
-   * 
-   * @param goal Velocity Goal
-   * 
-   * @return Test Command
    *
+   * @param goal Velocity Goal
+   * @return Test Command
    */
   public Test goToTest(DoubleSupplier goal) {
     Command testCommand = runShooter(goal).until(() -> atSetpoint()).withTimeout(5);
@@ -174,9 +166,7 @@ public class Shooter extends SubsystemBase implements AutoCloseable {
     return new Test(testCommand.withTimeout(5), Set.of(atGoal));
   }
 
-  /**
-   * closes motor
-   */
+  /** closes motor */
   @Override
   public void close() throws Exception {
     hardware.close();
