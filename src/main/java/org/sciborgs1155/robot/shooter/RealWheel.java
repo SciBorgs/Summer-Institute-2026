@@ -33,19 +33,19 @@ public class RealWheel implements WheelIO {
     configs.CurrentLimits.StatorCurrentLimit = STATOR_CURRENT_LIMIT.in(Amps);
     configs.CurrentLimits.SupplyCurrentLimit = SUPPLY_CURRENT_LIMIT.in(Amps);
 
+    configs.Feedback.SensorToMechanismRatio = SENSOR_MECHANISM_RATIO; 
+    configs.MotorOutput.NeutralMode = NeutralModeValue.Coast;  //coasts to a stop
+
     flywheelMotor2.setControl(new Follower(30, MotorAlignmentValue.Aligned)); // links the motors
-
-    /*
-    TO DO: More configurations
-     */
-
     flywheelMotor1.getConfigurator().apply(configs);
 
     /* Checks the motors */
     FaultLogger.register(flywheelMotor1);
+    FaultLogger.register(flywheelMotor2);
 
     /* adds motors to a list of all global motors */
     TalonUtils.addMotor(flywheelMotor1);
+    TalonUtils.addMotor(flywheelMotor2);
   }
 
   @Override

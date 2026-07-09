@@ -14,6 +14,7 @@ public class ShooterConstants {
   public static final double MAX_VOLTAGE = 12.0; // from rebuilt
   public static final AngularVelocity VELOCITY_TOLERANCE = RadiansPerSecond.of(1);
   public static final AngularVelocity IDLE_VELOCITY = RadiansPerSecond.of(5);
+  public static final double SENSOR_MECHANISM_RATIO = GEAR_RATIO * 2 * Math.PI; //in radians 
 
   public static class VelocityControl {
     public static final double P = 0.03;
