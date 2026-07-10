@@ -1,39 +1,45 @@
 package org.sciborgs1155.robot.intake;
 
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import static edu.wpi.first.units.Units.Amps;
+import org.sciborgs1155.robot.Robot;
 
-import org.sciborgs1155.robot.Ports;
+import static org.sciborgs1155.robot.intake.IntakeConstants.*;
 
 public class Intake extends SubsystemBase implements AutoCloseable  {
-    private final TalonFX RollerIntake;
+    private final IntakeIO hardware;
 
-    public Intake() {
-        RollerIntake = new TalonFX(Ports.Intake.ROLLER);
-        TalonFXConfiguration config = new TalonFXConfiguration();
-        config.CurrentLimits.SupplyCurrentLimit = IntakeConstants.CURRENT_LIMIT.in(Amps);
-        config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        
-        RollerIntake.getConfigurator().apply(config);
+    public Intake(IntakeIO hardware) {
+        this.hardware = hardware;
     }
 
-    public static Command spin() {
-        return Commands.run(() -> , Intake)
+    public static Intake create() {
+        return new Intake(Robot.isReal() ? new RealIntake() : new NoIntake()) ;
     }
 
-    public static Command stop() {
-        return Commands.run()
+    public Command spin(double volts) {
+        return run(() -> hardware.setVoltage(volts)).withName("spinning");
+    }
+
+    public Command stop() {
+        return spin(0);
+    }
+
+    public Command intake() {
+        return spin(INTAKE_POWER);
+    }
+
+    public Command outtake() {
+        return spin(-INTAKE_POWER);
+    }
+
+    public static Intake none() {
+        return new Intake(new NoIntake());
     }
 
     @Override
     public void close() throws Exception {
-        stop();
+        hardware.close();
     }
 }
