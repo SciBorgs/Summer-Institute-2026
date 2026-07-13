@@ -7,11 +7,14 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
+import static org.sciborgs1155.robot.shooter.ShooterConstants.MAX_VOLTAGE;
 import static org.sciborgs1155.robot.shooter.ShooterConstants.VELOCITY_TOLERANCE;
 
 import org.sciborgs1155.lib.Tuning;
 import org.sciborgs1155.robot.Robot;
 
+import edu.wpi.first.epilogue.Logged;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -56,7 +59,7 @@ public class Climb extends SubsystemBase implements AutoCloseable {
     public Climb(ClimbIO hardware) {
         this.hardware = hardware;
 
-        controller.setTolerance(VELOCITY_TOLERANCE.in(RadiansPerSecond));//configure 
+        controller.setTolerance(ClimbConstants.POSITION_TOLERANCE.in(Meters));//configure 
         controller.reset(hardware.getPosition());
         controller.setGoal(ClimbConstants.MIN_HEIGHT.in(Meters));
 
@@ -75,6 +78,21 @@ public class Climb extends SubsystemBase implements AutoCloseable {
         SmartDashboard.putData(
             "Climb top dynmaic forward", characterization.dynamic(Direction.kForward));
         
+    }
+
+
+    public Boolean atPosition(double goal) {
+        return Math.abs(goal - position()) < ClimbConstants.POSITION_TOLERANCE.in(Meters);
+    }
+
+    @Logged
+    public double position() {
+        return hardware.getPosition();
+    }
+
+    public void update(double positionSetpoint) {
+        double posotion = MathUtil.clamp(positionSetpoint, -MAX_VOLTAGE, positionSetpoint);
+
     }
 
     @Override
