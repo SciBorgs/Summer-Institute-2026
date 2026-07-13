@@ -50,4 +50,10 @@ public final class Ports {
   public static final class LEDs {
     public static final int LED_PORT = 9;
   }
+
+  /* PORTS FOR NOW -- WILL CHANGE LATER */
+  public static final class Shooter {
+    public static final int WHEEL_MOTOR1 = 30;
+    public static final int WHEEL_MOTOR2 = 31;
+  }
 }
