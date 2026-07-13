@@ -7,22 +7,24 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
-import static org.sciborgs1155.robot.shooter.ShooterConstants.MAX_VELOCITY;
 import static org.sciborgs1155.robot.shooter.ShooterConstants.VELOCITY_TOLERANCE;
 
+import org.sciborgs1155.lib.Tuning;
 import org.sciborgs1155.robot.Robot;
 
 import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 
 
-public class Climb implements AutoCloseable {
+public class Climb extends SubsystemBase implements AutoCloseable {
     private final ClimbIO hardware;
     private final ProfiledPIDController controller = new ProfiledPIDController(
         ClimbConstants.P, 
@@ -33,13 +35,23 @@ public class Climb implements AutoCloseable {
             ClimbConstants.MAX_ACCEL.in(MetersPerSecondPerSecond))); //for now 
         
     //elvator ff to take in cosideration gravity
-    private final ElevatorFeedforward ff = new ElevatorFeedforward(0, 0, 0); //for now
+    private final ElevatorFeedforward ff = new ElevatorFeedforward(ClimbConstants.S, ClimbConstants.G, ClimbConstants.V, ClimbConstants.A); //for now
     private final SysIdRoutine characterization;
 
+
+    /* When you suimulate, you can change the values in sumulation */
+    private final DoubleEntry kS = Tuning.entry("/Robot/tuning/elevator/kS", ClimbConstants.S);
+    private final DoubleEntry kG = Tuning.entry("/Robot/tuning/elevator/kG", ClimbConstants.G);
+    private final DoubleEntry kV = Tuning.entry("/Robot/tuning/elevator/kV", ClimbConstants.V);
+    private final DoubleEntry kA = Tuning.entry("/Robot/tuning/elevator/kA", ClimbConstants.A);
 
     public static Climb create() {
         return Robot.isReal() ? new Climb(new RealClimb()) : new Climb(new SimClimb());
     }
+
+     public static Climb none() {
+        return new Climb(new NoClimb());
+     }
 
     public Climb(ClimbIO hardware) {
         this.hardware = hardware;
@@ -53,7 +65,7 @@ public class Climb implements AutoCloseable {
             new SysIdRoutine.Mechanism(
                 v ->  hardware.setVoltage(v.in(Volts)), null, (Subsystem) this, "climb"));
 
-        
+        //to do add if (TUNING)
         SmartDashboard.putData(
             "clibmb top quasistatic backward", characterization.quasistatic(Direction.kReverse));
         SmartDashboard.putData(
