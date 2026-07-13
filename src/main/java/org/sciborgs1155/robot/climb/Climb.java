@@ -7,8 +7,11 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
+import static org.sciborgs1155.robot.Constants.TUNING;
 import static org.sciborgs1155.robot.shooter.ShooterConstants.MAX_VOLTAGE;
 import static org.sciborgs1155.robot.shooter.ShooterConstants.VELOCITY_TOLERANCE;
+
+import java.util.function.DoubleSupplier;
 
 import org.sciborgs1155.lib.Tuning;
 import org.sciborgs1155.robot.Robot;
@@ -20,6 +23,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -90,16 +94,60 @@ public class Climb extends SubsystemBase implements AutoCloseable {
         return hardware.getPosition();
     }
 
+    //gotta check this (moving on)
     public void update(double positionSetpoint) {
-        double posotion = MathUtil.clamp(positionSetpoint, -MAX_VOLTAGE, positionSetpoint);
+        double goal = 
+          Double.isNaN(positionSetpoint) //checks if it is a number
+            ? ClimbConstants.MIN_HEIGHT.in(Meters)
+            : MathUtil.clamp(positionSetpoint, ClimbConstants.MIN_HEIGHT.in(Meters), ClimbConstants.MAX_HEIGHT.in(Meters));
+        
+        double pidSetpoint = controller.getSetpoint().velocity;
+        double pidvolts = controller.calculate(hardware.getPosition(), goal);
+        double ffVolts= ff.calculateWithVelocities(pidSetpoint, controller.getSetpoint().velocity);
 
+        hardware.setVoltage(pidvolts + ffVolts);
     }
 
+    private double positionSetpoint() {
+        return controller.getSetpoint().position;
+    }
+
+    public Command goTo(DoubleSupplier height) {
+        return run(() -> update(height.getAsDouble())).finallyDo(() -> hardware.setVoltage(0));
+        
+    }
+
+    public Command goTo(double height) {
+        return goTo(() -> height);
+    }
+
+    public Command retractToMinHeight() {
+        return goTo(ClimbConstants.MIN_HEIGHT.in(Meters)).withName("retracting");
+    }
+
+    public Command extendToMaxHeight() {
+        return goTo(ClimbConstants.MAX_HEIGHT.in(Meters)).withName("Extending");
+    }
+
+    
+    @Override
+    public void periodic() {
+        setpoint.setLength(positionSetpoint());
+        measurement.setLength(position());
+
+    if (TUNING) {
+      ff.setKs(kS.get());
+      ff.setKg(kG.get());
+      ff.setKv(kV.get());
+      ff.setKa(kA.get());
+    }
+  }
+    }
+    
     @Override
     public void close() throws Exception {
         hardware.close();
     }
-
 
 
 }
