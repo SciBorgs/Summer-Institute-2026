@@ -9,6 +9,8 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
@@ -46,6 +48,11 @@ public class Hood extends SubsystemBase implements AutoCloseable{
         );
     
     private final ArmFeedforward ff = new ArmFeedforward(S, G, V, A);
+
+    private final HoodVisualizer measurement =
+      new HoodVisualizer("measurement", new Color8Bit(Color.kBlue), new Color8Bit(Color.kDarkBlue));
+    private final HoodVisualizer setpoint =
+      new HoodVisualizer("setpoint", new Color8Bit(Color.kOrange), new Color8Bit(Color.kOrangeRed));
 
     @NotLogged private final DoubleEntry tuningP = Tuning.entry("Robot/tuning/hood/K_P", P);
     @NotLogged private final DoubleEntry tuningI = Tuning.entry("Robot/tuning/hood/K_I", I);
@@ -217,6 +224,8 @@ public class Hood extends SubsystemBase implements AutoCloseable{
 
   @Override
   public void periodic() {
+    measurement.setAngle(Radians.of(angle()).in(Degrees));
+    setpoint.setAngle(Radians.of(angleSetpoint()).in(Degrees));
     if (TUNING) {
       fb.setP(tuningP.get());
       fb.setI(tuningI.get());
