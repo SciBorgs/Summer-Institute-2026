@@ -46,4 +46,6 @@ public class HoodConstants {
     public static final double G = .1;
     public static final double A = 0;
   }
+  // ...
+  public static final int PORT = 2265;
 }
