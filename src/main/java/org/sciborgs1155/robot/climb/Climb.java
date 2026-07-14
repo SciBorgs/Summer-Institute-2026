@@ -23,6 +23,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.networktables.DoubleEntry;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -44,9 +45,9 @@ public class Climb extends SubsystemBase implements AutoCloseable {
     //elvator ff to take in cosideration gravity
     private final ElevatorFeedforward ff = new ElevatorFeedforward(ClimbConstants.S, ClimbConstants.G, ClimbConstants.V, ClimbConstants.A); //for now
     private final SysIdRoutine characterization;
+    private final ClimbVisualizer climbVisualizer = new ClimbVisualizer("climb visualier", new Color8Bit(0, 0, 225));
 
-
-    /* When you suimulate, you can change the values in sumulation */
+    /* When you simulate, you can change the values in sumulation */
     private final DoubleEntry kS = Tuning.entry("/Robot/tuning/elevator/kS", ClimbConstants.S);
     private final DoubleEntry kG = Tuning.entry("/Robot/tuning/elevator/kG", ClimbConstants.G);
     private final DoubleEntry kV = Tuning.entry("/Robot/tuning/elevator/kV", ClimbConstants.V);
@@ -68,23 +69,29 @@ public class Climb extends SubsystemBase implements AutoCloseable {
         controller.setGoal(ClimbConstants.MIN_HEIGHT.in(Meters));
 
         characterization = new SysIdRoutine(
-            new SysIdRoutine.Config(Volts.per(Second).of(1), Volts.of(10.0), Seconds.of(11)),
+            new SysIdRoutine.Config(null, Volts.of(10.0), null),
             new SysIdRoutine.Mechanism(
                 v ->  hardware.setVoltage(v.in(Volts)), null, (Subsystem) this, "climb"));
 
-        //to do add if (TUNING)
+         /* Tuning ensure it only works in test  */
+        if (TUNING) {
         SmartDashboard.putData(
-            "clibmb top quasistatic backward", characterization.quasistatic(Direction.kReverse));
+            "clibmb top quasistatic backward", characterization.quasistatic(Direction.kReverse).until(() -> atPosition(ClimbConstants.MAX_HEIGHT.in(Meters))));
         SmartDashboard.putData(
-            "climb top quasistatic forward", characterization.quasistatic(Direction.kForward));
+            "climb top quasistatic forward", characterization.quasistatic(Direction.kForward).until(() -> atPosition(ClimbConstants.MIN_HEIGHT.in(Meters) + 0.1)));
         SmartDashboard.putData(
-            "Climb top dynamic backward", characterization.dynamic(Direction.kReverse));
+            "Climb top dynamic backward", characterization.dynamic(Direction.kReverse).until(() -> atPosition(ClimbConstants.MAX_HEIGHT.in(Meters))));
         SmartDashboard.putData(
-            "Climb top dynmaic forward", characterization.dynamic(Direction.kForward));
+            "Climb top dynmaic forward", characterization.dynamic(Direction.kForward).until(() -> atPosition(ClimbConstants.MIN_HEIGHT.in(Meters) + 0.1)));
         
+        }
     }
 
-
+    /**
+     * 
+     * @param goal
+     * @return
+     */
     public Boolean atPosition(double goal) {
         return Math.abs(goal - position()) < ClimbConstants.POSITION_TOLERANCE.in(Meters);
     }
@@ -132,7 +139,7 @@ public class Climb extends SubsystemBase implements AutoCloseable {
     
     @Override
     public void periodic() {
-        setpoint.setLength(positionSetpoint());
+        climbVisualizer.setLength(positionSetpoint());
         measurement.setLength(position());
 
     if (TUNING) {
