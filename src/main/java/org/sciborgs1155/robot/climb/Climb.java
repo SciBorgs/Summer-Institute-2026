@@ -53,10 +53,18 @@ public class Climb extends SubsystemBase implements AutoCloseable {
     private final DoubleEntry kV = Tuning.entry("/Robot/tuning/elevator/kV", ClimbConstants.V);
     private final DoubleEntry kA = Tuning.entry("/Robot/tuning/elevator/kA", ClimbConstants.A);
 
+    /**
+     * 
+     * @return either RealClimb (with hardware) or SimClimb if Robot is real
+     */
     public static Climb create() {
         return Robot.isReal() ? new Climb(new RealClimb()) : new Climb(new SimClimb());
     }
 
+    /**
+     * 
+     * @return a climb without hardware (NoClimb)
+     */
      public static Climb none() {
         return new Climb(new NoClimb());
      }
@@ -88,21 +96,29 @@ public class Climb extends SubsystemBase implements AutoCloseable {
     }
 
     /**
+     * Checks if position is within the tolerance margin 
      * 
-     * @param goal
-     * @return
+     * @param goal The desired goal in meters
+     * @return Boolean depending on if it is within the tolerance 
      */
     public Boolean atPosition(double goal) {
         return Math.abs(goal - position()) < ClimbConstants.POSITION_TOLERANCE.in(Meters);
     }
 
+    /**
+     * Gets the position of climb n meters
+     * @return Position of hardware in meters
+     */
     @Logged
     public double position() {
         return hardware.getPosition();
     }
 
-    //gotta check this (moving on)
-    public void update(double positionSetpoint) {
+    /**
+     * Updates the voltage usign pid and ff
+     * @param positionSetpoint The position to set the climb mechanism to 
+     */
+    private void update(double positionSetpoint) {
         double goal = 
           Double.isNaN(positionSetpoint) //checks if it is a number
             ? ClimbConstants.MIN_HEIGHT.in(Meters)
@@ -115,23 +131,45 @@ public class Climb extends SubsystemBase implements AutoCloseable {
         hardware.setVoltage(pidvolts + ffVolts);
     }
 
-    private double positionSetpoint() {
+    /**
+     * 
+     * @return the setpoint of the PID
+     */
+    public double positionSetpoint() {
         return controller.getSetpoint().position;
     }
 
+    /**
+     * 
+     * @param height The desired height 
+     * @return Move the climb
+     */
     public Command goTo(DoubleSupplier height) {
         return run(() -> update(height.getAsDouble())).finallyDo(() -> hardware.setVoltage(0));
         
     }
 
+    /**
+     * A double instead of a double supplier
+     * @param height Height of the climb mechamism
+     * @return Command to go to desired height
+     */
     public Command goTo(double height) {
         return goTo(() -> height);
     }
 
+    /**
+     * Retracts climb to minium height
+     * @return Command to retract
+     */
     public Command retractToMinHeight() {
         return goTo(ClimbConstants.MIN_HEIGHT.in(Meters)).withName("retracting");
     }
 
+    /**
+     * Extends climb to maxium height
+     * @return Command to extend 
+     */
     public Command extendToMaxHeight() {
         return goTo(ClimbConstants.MAX_HEIGHT.in(Meters)).withName("Extending");
     }
@@ -149,7 +187,7 @@ public class Climb extends SubsystemBase implements AutoCloseable {
       ff.setKa(kA.get());
     }
   }
-    }
+    
     
     @Override
     public void close() throws Exception {
