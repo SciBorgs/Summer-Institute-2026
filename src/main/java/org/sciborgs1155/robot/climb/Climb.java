@@ -39,8 +39,13 @@ public class Climb extends SubsystemBase implements AutoCloseable {
       new ElevatorFeedforward(
           ClimbConstants.S, ClimbConstants.G, ClimbConstants.V, ClimbConstants.A); // for now
   private final SysIdRoutine characterization;
-  private final ClimbVisualizer climbVisualizer =
-      new ClimbVisualizer("climb visualier", new Color8Bit(0, 0, 225));
+
+
+  private final ClimbVisualizer setPoint = //setpoint is the goal
+      new ClimbVisualizer("setpoint", new Color8Bit(0, 0, 225));
+  private final ClimbVisualizer actualMeasurement = 
+      new ClimbVisualizer("actualMeasurement", new Color8Bit(0, 0 , 225)); //the actual height of elevator 
+
 
   /* When you simulate, you can change the values in sumulation */
   private final DoubleEntry kS = Tuning.entry("/Robot/tuning/elevator/kS", ClimbConstants.S);
@@ -184,13 +189,15 @@ public class Climb extends SubsystemBase implements AutoCloseable {
     return goTo(ClimbConstants.MAX_HEIGHT.in(Meters)).withName("Extending");
   }
 
+  
   @Override
   public void periodic() {
-    climbVisualizer.setLength(positionSetpoint());
-    measurement.setLength(position());
+    setPoint.setLength(positionSetpoint());
+    actualMeasurement.setLength(position());
 
+    //updates the ff args
     if (TUNING) {
-      ff.setKs(kS.get());
+      ff.setKs(kS.get()); 
       ff.setKg(kG.get());
       ff.setKv(kV.get());
       ff.setKa(kA.get());
