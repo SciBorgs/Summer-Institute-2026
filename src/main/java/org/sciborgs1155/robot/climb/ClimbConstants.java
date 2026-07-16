@@ -14,15 +14,14 @@ import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
 
-//copied from rebuilt 
+// copied from rebuilt
 public final class ClimbConstants {
 
   public static final double P = 100;
   public static final double I = 0;
   public static final double D = 0;
 
-  public static final LinearAcceleration SPRING_ACCELERATION =
-      MetersPerSecondPerSecond.of(20); 
+  public static final LinearAcceleration SPRING_ACCELERATION = MetersPerSecondPerSecond.of(20);
 
   public static final double S = 0;
   public static final double G = 0;
@@ -32,12 +31,10 @@ public final class ClimbConstants {
   public static final LinearVelocity MAX_VELOCITY = MetersPerSecond.of(.5);
   public static final LinearAcceleration MAX_ACCEL = MetersPerSecondPerSecond.of(.2);
 
-  public static final double GEARING = 60.0; 
+  public static final double GEARING = 60.0;
   public static final Distance WINCH_DIAMETER = Inches.of(0.750);
   public static final double SENSOR_TO_MECHANISM_RATIO =
-      WINCH_DIAMETER.in(Meters)
-          * Math.PI
-          / GEARING; //changed it to meters (but it may be wrong)
+      WINCH_DIAMETER.in(Meters) * Math.PI / GEARING; // changed it to meters (but it may be wrong)
   public static final Current STATOR_LIMIT = Amps.of(60);
   public static final Current SUPPLY_LIMIT = Amps.of(100);
   public static final Distance POSITION_TOLERANCE = Inches.of(0.5);
@@ -47,6 +44,6 @@ public final class ClimbConstants {
   public static final Distance MIN_HEIGHT = Inches.of(18.032);
   public static final Distance MAX_HEIGHT = Inches.of(30);
   public static final Distance STARTING_HEIGHT = MAX_HEIGHT;
-  public static final Mass WEIGHT = Pounds.of(6.42); 
+  public static final Mass WEIGHT = Pounds.of(6.42);
   public static final Distance SPROCKET_RADIUS = Inches.of(5);
 }
