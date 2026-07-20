@@ -3,7 +3,7 @@ import org.sciborgs1155.lib.SimpleMotor;
 import org.sciborgs1155.lib.Beambreak;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import static org.sciborgs1155.robot.Ports.Hopper.*;
+
 import static org.sciborgs1155.robot.hopper.HopperConstants.*;
 
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -18,15 +18,26 @@ import org.sciborgs1155.robot.Robot;
 public final class Hopper extends SubsystemBase implements AutoClosable{
     public final TalonFX motor;
     private final SimpleMotor hardware;
-    private final Beambreak beambreak;
-    public final Trigger blocked;
+    
 
     //Hopper
-    public Hopper() {
+    public Hopper(int deviceID) {
         motor = new TalonFX();
         TalonFXConfiguration configs = new TalonFXConfiguration();
-        SimpleMotor HopperMotor = new talon(motor, );
+        this.hardware = SimpleMotor.talon(motor,configs);
+    }
+    public static Hopper none(){
+        this.hardware = SimpleMotor.none();
+    }
+    public void set(){
+        hardware.set(HopperConstants.INTAKING_POWER);
+    }
+    public void setVoltage(){
+        hardware.set(HopperConstants.CURRENT_LIMIT);
     }
     
+    public void close() {
+        hardware.close();
+    }
 
 }
